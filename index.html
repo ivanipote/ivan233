@@ -1,9 +1,10 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Créateur de Photo de Profil WhatsApp</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -26,6 +27,92 @@
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             padding: 20px;
+            position: relative;
+        }
+        
+        .settings-icon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            color: #25D366;
+            cursor: pointer;
+            z-index: 100;
+            transition: transform 0.3s;
+        }
+        
+        .settings-icon:hover {
+            transform: rotate(45deg);
+        }
+        
+        .settings-menu {
+            display: none;
+            position: absolute;
+            top: 50px;
+            right: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            padding: 15px;
+            width: 300px;
+            z-index: 100;
+        }
+        
+        .settings-menu.active {
+            display: block;
+        }
+        
+        .settings-menu h3 {
+            color: #25D366;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .library {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+        
+        .library-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            background: #f9f9f9;
+            cursor: pointer;
+        }
+        
+        .library-item:hover {
+            background: #f0f0f0;
+        }
+        
+        .library-item img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 10px;
+        }
+        
+        .settings-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #25D366;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        
+        .settings-btn:hover {
+            background-color: #128C7E;
         }
         
         h1 {
@@ -153,11 +240,33 @@
             .canvas-container {
                 flex-direction: column;
             }
+            
+            .settings-menu {
+                width: 250px;
+                right: 10px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="settings-icon">
+            <i class="fas fa-cog"></i>
+        </div>
+        
+        <div class="settings-menu" id="settings-menu">
+            <h3>Paramètres</h3>
+            
+            <div class="library" id="image-library">
+                <p>Vos images sauvegardées:</p>
+                <!-- Les images sauvegardées apparaîtront ici -->
+            </div>
+            
+            <button class="settings-btn" id="home-btn">
+                <i class="fas fa-home"></i> Revenir à l'accueil
+            </button>
+        </div>
+        
         <h1>Créateur de Photo de Profil WhatsApp</h1>
         
         <div class="instructions">
@@ -210,15 +319,36 @@
             const previewCanvas = document.getElementById('preview-canvas');
             const blurIntensity = document.getElementById('blur-intensity');
             const downloadBtn = document.getElementById('download-btn');
+            const settingsIcon = document.querySelector('.settings-icon');
+            const settingsMenu = document.getElementById('settings-menu');
+            const homeBtn = document.getElementById('home-btn');
+            const imageLibrary = document.getElementById('image-library');
             
             const originalCtx = originalCanvas.getContext('2d');
             const previewCtx = previewCanvas.getContext('2d');
             
             let originalImage = null;
+            let savedImages = JSON.parse(localStorage.getItem('whatsappProfileImages')) || [];
             
             // Configurer les canvases
             originalCanvas.width = previewCanvas.width = 400;
             originalCanvas.height = previewCanvas.height = 400;
+            
+            // Afficher le menu des paramètres
+            settingsIcon.addEventListener('click', () => {
+                settingsMenu.classList.toggle('active');
+                if (settingsMenu.classList.contains('active')) {
+                    loadImageLibrary();
+                }
+            });
+            
+            // Revenir à la page d'accueil
+            homeBtn.addEventListener('click', () => {
+                // Réinitialiser l'interface
+                editor.style.display = 'none';
+                settingsMenu.classList.remove('active');
+                imageUpload.value = '';
+            });
             
             // Ouvrir le sélecteur de fichiers quand on clique sur le bouton
             uploadBtn.addEventListener('click', () => {
@@ -348,13 +478,75 @@
                 
                 downloadCtx.restore();
                 
+                // Sauvegarder l'image dans la bibliothèque
+                saveToLibrary(downloadCanvas.toDataURL('image/png'));
+                
                 // Créer un lien de téléchargement
                 const link = document.createElement('a');
                 link.download = 'whatsapp-profile-picture.png';
                 link.href = downloadCanvas.toDataURL('image/png');
                 link.click();
             }
+            
+            function saveToLibrary(dataUrl) {
+                // Ajouter l'image à la liste des images sauvegardées
+                savedImages.unshift({
+                    data: dataUrl,
+                    timestamp: new Date().getTime()
+                });
+                
+                // Garder seulement les 10 dernières images
+                if (savedImages.length > 10) {
+                    savedImages = savedImages.slice(0, 10);
+                }
+                
+                // Sauvegarder dans le localStorage
+                localStorage.setItem('whatsappProfileImages', JSON.stringify(savedImages));
+            }
+            
+            function loadImageLibrary() {
+                // Vider la bibliothèque actuelle
+                imageLibrary.innerHTML = '<p>Vos images sauvegardées:</p>';
+                
+                if (savedImages.length === 0) {
+                    imageLibrary.innerHTML += '<p class="note">Aucune image sauvegardée</p>';
+                    return;
+                }
+                
+                // Ajouter chaque image à la bibliothèque
+                savedImages.forEach((img, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'library-item';
+                    
+                    const imgElement = document.createElement('img');
+                    imgElement.src = img.data;
+                    imgElement.alt = 'Image sauvegardée';
+                    
+                    const date = new Date(img.timestamp);
+                    const dateString = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                    
+                    const text = document.createElement('span');
+                    text.textContent = dateString;
+                    
+                    item.appendChild(imgElement);
+                    item.appendChild(text);
+                    
+                    // Ajouter un événement pour charger cette image
+                    item.addEventListener('click', () => {
+                        const img = new Image();
+                        img.onload = function() {
+                            originalImage = img;
+                            drawImage();
+                            editor.style.display = 'block';
+                            settingsMenu.classList.remove('active');
+                        };
+                        img.src = savedImages[index].data;
+                    });
+                    
+                    imageLibrary.appendChild(item);
+                });
+            }
         });
     </script>
 </body>
-  </html>
+</html>                

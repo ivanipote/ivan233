@@ -39,16 +39,25 @@
             cursor: pointer;
             z-index: 100;
             transition: transform 0.3s;
+            background: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
         
         .settings-icon:hover {
             transform: rotate(45deg);
+            color: #128C7E;
         }
         
         .settings-menu {
             display: none;
             position: absolute;
-            top: 50px;
+            top: 60px;
             right: 20px;
             background: white;
             border-radius: 8px;
@@ -83,10 +92,11 @@
             border-radius: 5px;
             background: #f9f9f9;
             cursor: pointer;
+            transition: background-color 0.2s;
         }
         
         .library-item:hover {
-            background: #f0f0f0;
+            background: #e0f7ea;
         }
         
         .library-item img {
@@ -95,12 +105,13 @@
             border-radius: 50%;
             object-fit: cover;
             margin-right: 10px;
+            border: 2px solid #25D366;
         }
         
         .settings-btn {
             display: block;
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             background-color: #25D366;
             color: white;
             border: none;
@@ -109,6 +120,7 @@
             text-align: center;
             margin-top: 10px;
             transition: background-color 0.3s;
+            font-weight: 600;
         }
         
         .settings-btn:hover {
@@ -119,6 +131,7 @@
             text-align: center;
             color: #25D366;
             margin-bottom: 20px;
+            padding-top: 10px;
         }
         
         .instructions {
@@ -146,17 +159,19 @@
         
         .upload-container p {
             margin-bottom: 15px;
+            font-size: 18px;
         }
         
         #upload-btn {
             background-color: #25D366;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
             transition: background-color 0.3s;
+            font-weight: 600;
         }
         
         #upload-btn:hover {
@@ -191,6 +206,7 @@
             border: 1px solid #ddd;
             border-radius: 50%;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            background-color: #f0f2f5;
         }
         
         .controls {
@@ -203,11 +219,13 @@
             padding: 15px;
             border-radius: 8px;
             background-color: #f9f9f9;
+            text-align: left;
         }
         
         .control-group h4 {
             margin-bottom: 10px;
             color: #128C7E;
+            text-align: center;
         }
         
         .blur-control, .text-control {
@@ -222,10 +240,15 @@
         
         #blur-intensity, #text-input {
             width: 100%;
-            max-width: 300px;
-            padding: 8px;
+            max-width: 100%;
+            padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        #blur-intensity {
+            margin-top: 10px;
         }
         
         .color-options {
@@ -233,6 +256,7 @@
             justify-content: center;
             gap: 10px;
             margin-top: 10px;
+            flex-wrap: wrap;
         }
         
         .color-option {
@@ -257,12 +281,13 @@
             background-color: #25D366;
             color: white;
             border: none;
-            padding: 12px 25px;
+            padding: 15px 30px;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 18px;
             transition: background-color 0.3s;
             margin-top: 10px;
+            font-weight: 600;
         }
         
         #download-btn:hover {
@@ -276,14 +301,22 @@
             text-align: center;
         }
         
+        .empty-library {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 10px;
+        }
+        
         @media (max-width: 768px) {
             .canvas-container {
                 flex-direction: column;
             }
             
             .settings-menu {
-                width: 250px;
-                right: 10px;
+                width: 90%;
+                right: 5%;
+                left: 5%;
             }
             
             .color-options {
@@ -294,7 +327,7 @@
 </head>
 <body>
     <div class="container">
-        <div class="settings-icon">
+        <div class="settings-icon" id="settings-icon">
             <i class="fas fa-cog"></i>
         </div>
         
@@ -303,6 +336,7 @@
             
             <div class="library" id="image-library">
                 <p>Vos images sauvegardées:</p>
+                <div class="empty-library" id="empty-library">Aucune image sauvegardée</div>
                 <!-- Les images sauvegardées apparaîtront ici -->
             </div>
             
@@ -361,7 +395,7 @@
                     <div class="text-control">
                         <label>Couleur du texte:</label>
                         <div class="color-options">
-                            <div class="color-option selected" style="background-color: white;" data-color="white"></div>
+                            <div class="color-option selected" style="background-color: white; border: 1px solid #ccc;" data-color="white"></div>
                             <div class="color-option" style="background-color: black;" data-color="black"></div>
                             <div class="color-option" style="background-color: #25D366;" data-color="#25D366"></div>
                             <div class="color-option" style="background-color: #FF5733;" data-color="#FF5733"></div>
@@ -379,6 +413,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Références aux éléments DOM
             const imageUpload = document.getElementById('image-upload');
             const uploadBtn = document.getElementById('upload-btn');
             const editor = document.getElementById('editor');
@@ -386,72 +421,113 @@
             const previewCanvas = document.getElementById('preview-canvas');
             const blurIntensity = document.getElementById('blur-intensity');
             const downloadBtn = document.getElementById('download-btn');
-            const settingsIcon = document.querySelector('.settings-icon');
+            const settingsIcon = document.getElementById('settings-icon');
             const settingsMenu = document.getElementById('settings-menu');
             const homeBtn = document.getElementById('home-btn');
             const imageLibrary = document.getElementById('image-library');
+            const emptyLibrary = document.getElementById('empty-library');
             const textInput = document.getElementById('text-input');
             const colorOptions = document.querySelectorAll('.color-option');
             
             const originalCtx = originalCanvas.getContext('2d');
             const previewCtx = previewCanvas.getContext('2d');
             
+            // Variables d'état
             let originalImage = null;
             let savedImages = JSON.parse(localStorage.getItem('whatsappProfileImages')) || [];
             let selectedColor = 'white';
             
-            // Configurer les canvases
+            // Initialisation des canvases
             originalCanvas.width = previewCanvas.width = 400;
             originalCanvas.height = previewCanvas.height = 400;
             
-            // Afficher le menu des paramètres
-            settingsIcon.addEventListener('click', () => {
+            // Dessiner un placeholder sur les canvases
+            drawPlaceholder();
+            
+            // Gestionnaire d'événements pour l'icône Paramètres
+            settingsIcon.addEventListener('click', function(e) {
+                e.stopPropagation();
                 settingsMenu.classList.toggle('active');
                 if (settingsMenu.classList.contains('active')) {
                     loadImageLibrary();
                 }
             });
             
+            // Fermer le menu Paramètres en cliquant à l'extérieur
+            document.addEventListener('click', function(e) {
+                if (settingsMenu.classList.contains('active') && 
+                    !settingsMenu.contains(e.target) && 
+                    !settingsIcon.contains(e.target)) {
+                    settingsMenu.classList.remove('active');
+                }
+            });
+            
+            // Empêcher la fermeture du menu quand on clique dessus
+            settingsMenu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+            
             // Revenir à la page d'accueil
-            homeBtn.addEventListener('click', () => {
-                // Réinitialiser l'interface
+            homeBtn.addEventListener('click', function() {
                 editor.style.display = 'none';
                 settingsMenu.classList.remove('active');
                 imageUpload.value = '';
                 textInput.value = '';
+                drawPlaceholder();
             });
             
-            // Ouvrir le sélecteur de fichiers quand on clique sur le bouton
-            uploadBtn.addEventListener('click', () => {
+            // Ouvrir le sélecteur de fichiers
+            uploadBtn.addEventListener('click', function() {
                 imageUpload.click();
             });
             
-            // Gérer le changement de couleur
+            // Gestionnaire de changement de couleur
             colorOptions.forEach(option => {
-                option.addEventListener('click', () => {
-                    // Retirer la classe selected de toutes les options
+                option.addEventListener('click', function() {
                     colorOptions.forEach(opt => opt.classList.remove('selected'));
-                    // Ajouter la classe selected à l'option cliquée
-                    option.classList.add('selected');
-                    // Mettre à jour la couleur sélectionnée
-                    selectedColor = option.getAttribute('data-color');
-                    // Mettre à jour l'aperçu
-                    updateBlurEffect();
+                    this.classList.add('selected');
+                    selectedColor = this.getAttribute('data-color');
+                    if (originalImage) updateBlurEffect();
                 });
             });
             
-            // Gérer le téléchargement d'image
+            // Gestionnaire de téléchargement d'image
             imageUpload.addEventListener('change', handleImageUpload);
             
-            // Mettre à jour le flou quand l'utilisateur ajuste l'intensité
-            blurIntensity.addEventListener('input', updateBlurEffect);
+            // Mise à jour en temps réel des modifications
+            blurIntensity.addEventListener('input', function() {
+                if (originalImage) updateBlurEffect();
+            });
             
-            // Mettre à jour le texte quand l'utilisateur tape
-            textInput.addEventListener('input', updateBlurEffect);
+            textInput.addEventListener('input', function() {
+                if (originalImage) updateBlurEffect();
+            });
             
-            // Télécharger l'image
+            // Téléchargement de l'image finale
             downloadBtn.addEventListener('click', downloadImage);
             
+            // Fonction pour dessiner un placeholder
+            function drawPlaceholder() {
+                originalCtx.clearRect(0, 0, originalCanvas.width, originalCanvas.height);
+                previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+                
+                originalCtx.fillStyle = '#f0f2f5';
+                originalCtx.fillRect(0, 0, originalCanvas.width, originalCanvas.height);
+                previewCtx.fillStyle = '#f0f2f5';
+                previewCtx.fillRect(0, 0, previewCanvas.width, previewCanvas.height);
+                
+                originalCtx.fillStyle = '#ccc';
+                originalCtx.font = '16px Arial';
+                originalCtx.textAlign = 'center';
+                originalCtx.fillText('Image originale', originalCanvas.width/2, originalCanvas.height/2);
+                
+                previewCtx.fillStyle = '#ccc';
+                previewCtx.font = '16px Arial';
+                previewCtx.textAlign = 'center';
+                previewCtx.fillText('Aperçu du profil', previewCanvas.width/2, previewCanvas.height/2);
+            }
+            
+            // Fonction pour gérer le téléchargement d'image
             function handleImageUpload(e) {
                 const file = e.target.files[0];
                 if (!file) return;
@@ -464,13 +540,19 @@
                         drawImage();
                         editor.style.display = 'block';
                     };
+                    img.onerror = function() {
+                        alert('Erreur lors du chargement de l\'image. Veuillez réessayer avec une autre image.');
+                    };
                     img.src = event.target.result;
+                };
+                reader.onerror = function() {
+                    alert('Erreur lors de la lecture du fichier. Veuillez réessayer.');
                 };
                 reader.readAsDataURL(file);
             }
             
+            // Fonction pour dessiner l'image
             function drawImage() {
-                // Dessiner l'image originale
                 const size = Math.min(originalImage.width, originalImage.height);
                 const sx = (originalImage.width - size) / 2;
                 const sy = (originalImage.height - size) / 2;
@@ -482,34 +564,28 @@
                     0, 0, originalCanvas.width, originalCanvas.height
                 );
                 
-                // Mettre à jour l'aperçu
                 updateBlurEffect();
             }
             
+            // Fonction pour mettre à jour l'effet de flou
             function updateBlurEffect() {
-                if (!originalImage) return;
-                
                 const intensity = parseInt(blurIntensity.value);
                 const text = textInput.value;
                 
-                // Effacer le canvas de prévisualisation
                 previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
                 
                 // Dessiner l'image avec flou
                 previewCtx.filter = `blur(${intensity}px)`;
                 previewCtx.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
                 
-                // Dessiner le cercle sans flou (le sujet)
+                // Dessiner le cercle sans flou
                 previewCtx.filter = 'none';
-                
-                // Créer un chemin de clipping circulaire
                 previewCtx.beginPath();
                 previewCtx.arc(previewCanvas.width / 2, previewCanvas.height / 2, previewCanvas.width / 3, 0, Math.PI * 2);
                 previewCtx.closePath();
                 previewCtx.save();
                 previewCtx.clip();
                 
-                // Dessiner la partie centrale sans flou
                 const size = Math.min(originalImage.width, originalImage.height);
                 const sx = (originalImage.width - size) / 2;
                 const sy = (originalImage.height - size) / 2;
@@ -522,7 +598,7 @@
                 
                 previewCtx.restore();
                 
-                // Dessiner un contour pour mieux délimiter le cercle
+                // Dessiner un contour
                 previewCtx.beginPath();
                 previewCtx.arc(previewCanvas.width / 2, previewCanvas.height / 2, previewCanvas.width / 3, 0, Math.PI * 2);
                 previewCtx.lineWidth = 2;
@@ -531,38 +607,145 @@
                 
                 // Ajouter le texte personnalisé si fourni
                 if (text) {
-                    previewCtx.font = 'bold 24px Arial';
+                    previewCtx.font = 'bold 20px Arial';
                     previewCtx.fillStyle = selectedColor;
                     previewCtx.textAlign = 'center';
-                    previewCtx.textBaseline = 'middle';
                     
-                    // Positionner le texte sur le demi-cercle inférieur
+                    // Positionner le texte en haut du cercle
                     const centerX = previewCanvas.width / 2;
-                    const centerY = previewCanvas.height / 2;
-                    const radius = previewCanvas.width / 2.5;
+                    const topY = (previewCanvas.height / 2) - (previewCanvas.width / 3) - 25;
                     
-                    // Dessiner le texte en arc de cercle
-                    drawCircularText(previewCtx, text, centerX, centerY, radius, Math.PI, 2 * Math.PI);
+                    // Ajouter un contour au texte pour meilleure lisibilité
+                    if (selectedColor === 'white') {
+                        previewCtx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+                        previewCtx.lineWidth = 2;
+                        previewCtx.strokeText(text, centerX, topY);
+                    }
+                    
+                    previewCtx.fillText(text, centerX, topY);
                 }
             }
             
-            function drawCircularText(ctx, text, centerX, centerY, radius, startAngle, endAngle) {
-                const characters = text.split('');
-                const totalAngle = endAngle - startAngle;
-                const anglePerChar = totalAngle / characters.length;
-                
-                // Ajuster le rayon pour le texte
-                const textRadius = radius + 20; // Décalage vers l'extérieur
-                
-                // Dessiner chaque caractère
-                for (let i = 0; i < characters.length; i++) {
-                    const char = characters[i];
-                    const angle = startAngle + (i * anglePerChar) + (anglePerChar / 2);
-                    
-                    ctx.save();
-                    ctx.translate(centerX, centerY);
-                    ctx.rotate(angle);
-                    ctx.fillText(char, 0, -textRadius);
-                    ctx.restore();
+            // Fonction pour télécharger l'image
+            function downloadImage() {
+                if (!originalImage) {
+                    alert('Veuillez d\'abord télécharger une image.');
+                    return;
                 }
- 
+                
+                const downloadCanvas = document.createElement('canvas');
+                downloadCanvas.width = previewCanvas.width;
+                downloadCanvas.height = previewCanvas.height;
+                const downloadCtx = downloadCanvas.getContext('2d');
+                
+                const intensity = parseInt(blurIntensity.value);
+                downloadCtx.filter = `blur(${intensity}px)`;
+                downloadCtx.drawImage(originalImage, 0, 0, downloadCanvas.width, downloadCanvas.height);
+                
+                downloadCtx.filter = 'none';
+                downloadCtx.beginPath();
+                downloadCtx.arc(downloadCanvas.width / 2, downloadCanvas.height / 2, downloadCanvas.width / 3, 0, Math.PI * 2);
+                downloadCtx.closePath();
+                downloadCtx.save();
+                downloadCtx.clip();
+                
+                const size = Math.min(originalImage.width, originalImage.height);
+                const sx = (originalImage.width - size) / 2;
+                const sy = (originalImage.height - size) / 2;
+                
+                downloadCtx.drawImage(
+                    originalImage, 
+                    sx, sy, size, size,
+                    0, 0, downloadCanvas.width, downloadCanvas.height
+                );
+                
+                downloadCtx.restore();
+                
+                const text = textInput.value;
+                if (text) {
+                    downloadCtx.font = 'bold 20px Arial';
+                    downloadCtx.fillStyle = selectedColor;
+                    downloadCtx.textAlign = 'center';
+                    
+                    // Positionner le texte en haut du cercle
+                    const centerX = downloadCanvas.width / 2;
+                    const topY = (downloadCanvas.height / 2) - (downloadCanvas.width / 3) - 25;
+                    
+                    // Ajouter un contour au texte pour meilleure lisibilité
+                    if (selectedColor === 'white') {
+                        downloadCtx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+                        downloadCtx.lineWidth = 2;
+                        downloadCtx.strokeText(text, centerX, topY);
+                    }
+                    
+                    downloadCtx.fillText(text, centerX, topY);
+                }
+                
+                saveToLibrary(downloadCanvas.toDataURL('image/png'));
+                
+                const link = document.createElement('a');
+                link.download = 'whatsapp-profile-picture.png';
+                link.href = downloadCanvas.toDataURL('image/png');
+                link.click();
+            }
+            
+            // Fonction pour sauvegarder dans la bibliothèque
+            function saveToLibrary(dataUrl) {
+                savedImages.unshift({
+                    data: dataUrl,
+                    timestamp: new Date().getTime()
+                });
+                
+                if (savedImages.length > 10) {
+                    savedImages = savedImages.slice(0, 10);
+                }
+                
+                localStorage.setItem('whatsappProfileImages', JSON.stringify(savedImages));
+            }
+            
+            // Fonction pour charger la bibliothèque d'images
+            function loadImageLibrary() {
+                imageLibrary.innerHTML = '<p>Vos images sauvegardées:</p>';
+                
+                if (savedImages.length === 0) {
+                    emptyLibrary.style.display = 'block';
+                    return;
+                }
+                
+                emptyLibrary.style.display = 'none';
+                
+                savedImages.forEach((img, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'library-item';
+                    
+                    const imgElement = document.createElement('img');
+                    imgElement.src = img.data;
+                    imgElement.alt = 'Image sauvegardée';
+                    
+                    const date = new Date(img.timestamp);
+                    const dateString = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                    
+                    const text = document.createElement('span');
+                    text.textContent = dateString;
+                    
+                    item.appendChild(imgElement);
+                    item.appendChild(text);
+                    
+                    item.addEventListener('click', () => {
+                        const img = new Image();
+                        img.onload = function() {
+                            originalImage = img;
+                            drawImage();
+                            editor.style.display = 'block';
+                            settingsMenu.classList.remove('active');
+                        };
+                        img.src = savedImages[index].data;
+                    });
+                    
+                    imageLibrary.appendChild(item);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
